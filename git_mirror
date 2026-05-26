@@ -1,31 +1,35 @@
-#!/bin/bash
+#!/bin/env bash
 # Repository mirrorer
 # © John Peterson. License GNU GPL 3.
 
 # install
-# sudo apt install -y git mercurial cvs subversion git-cvs git-svn git-remote-bzr jshon jq python3 python-is-python3
+# sudo apt install -y git mercurial cvs subversion git-cvs git-svn git-remote-bzr jshon jq python3 python-is-python3 pastel
 #
 # curl https://raw.githubusercontent.com/felipec/git-remote-hg/master/git-remote-hg -o ~/bin/git-remote-hg
 # chmod +x ~/bin/git-remote-hg
-# 
+#
 # https://repo1.maven.org/maven2/com/madgag/bfg/1.14.0/bfg-1.14.0.jar
 
-# import
-source git_login.sh 2>/dev/null
+# replace with gh 
+# source git_login.sh 2>/dev/null
 
 function show_usage() {
 	echo mirror repo to git hub
 	echo 'example usage: git_mirror.sh abc bzr http://launchpad/abc "" --debug --dry-run
---fast skip svn cvs
---interactive require user input
---quiet no progress info
---resume experiment to resume existing svn cvs mirror
---small less 100 meg
---test test api during dry run
---type=hg -thg only this type
-'
+	--fast skip svn cvs
+	--interactive require user input
+	--quiet no progress info
+	--resume experiment to resume existing svn cvs mirror
+	--small less 100 meg
+	--test test api during dry run
+	--type=hg -thg only this type
+	'
 	exit 0
 }
+
+# echo $@
+# echo $#
+# exit
 
 if [ $# -lt 3 ]; then
 	echo too few arguments
@@ -48,32 +52,67 @@ issmall=false
 istest=false
 
 for arg in "$@"; do
-case "$arg" in
-	-\?|-h|--help|--usage)
-		show_usage;;
-	-d|--debug)
-		isdebug=true;;
-	-n|--dry-run)
-		isdry=true;;
-	-f|--fast)
-		isfast=true;;
-	-i|--interactive)
-		isint=true;;
-	-q|--quiet)
-		q=-q
-		qq=-qq;;
-	-r|--resume)
-		isresume=true;;
-	-s|--small)
-		issmall=true;;
-	--test)
-		istest=true;;
-	-t*)
-		istype=$(echo $arg|cut -c 3-);;
-	--type*)
-		istype=$(echo $arg|cut -f2 -d=);;
-esac
+	# echo -- $arg
+	case "$arg" in
+		-\?|-h|--help|--usage)
+			show_usage;;
+		-d|--debug)
+			isdebug=true;;
+		-n|--dry-run)
+			isdry=true;;
+		-f|--fast)
+			isfast=true;;
+		-i|--interactive)
+			isint=true;;
+		-q|--quiet)
+			q=-q
+			qq=-qq;;
+		-Q) export PS4='+$0 \[\e[32m\]${FUNCNAME[0]:-<global scope>}${FUNCNAME[*]:+()}:$LINENO\[\e[0m\] '; set -x;;
+		-r|--resume)
+			isresume=true;;
+		-s|--small)
+			issmall=true;;
+		--test)
+			istest=true;;
+		-t*)
+			istype=$(echo $arg|cut -c 3-);;
+		--type*)
+			istype=$(echo $arg|cut -f2 -d=);;
+		# -*)
+		# 	echo illegal argument: $1
+		# 	exit
+		# 	;;
+		*)
+			args+=($arg)
+			;;
+	esac
 done
+
+args(){
+	TO=(${1//\// })
+	to=${TO[0]}
+	name=$to
+	branch=${TO[1]}
+	type=$2
+	from=$3
+	arg=$4
+	host=$(echo $from | awk -F[/:] '{print $4}')
+}
+args ${args[@]}
+
+# echo -- ${#args[@]}
+# echo -- ${args[@]}
+# exit
+# echo -- $@
+# echo $type
+# exit 1
+
+# config
+set -e
+# set -u
+# set -o pipefail
+# echo $abc
+# mkdir /abc
 
 # alias
 shopt -s expand_aliases
@@ -85,6 +124,16 @@ if $isdry; then
 	done
 	# type git; git -v
 fi
+
+isday() {
+	read -t1 -rs -d \\ -p $'\e]11;?\e\\' bg
+	bg=$(echo $bg | xxd -c 25 | cut -d/ -f2)
+	if test "$(pastel format name $bg)" = white; then
+		echo true
+	else
+		echo false
+	fi
+}
 
 function format() {
 	if $1; then
@@ -98,34 +147,43 @@ function format() {
 	echo "${bold}${color}$@${normal}"
 }
 
-# cloud machine are rate limited 
+msg(){
+	if $(isday); then
+		format false 8 $@
+	else
+		format false 7 $@
+	fi
+}
+
+# cloud machine are rate limited
 function have_api() {
 	if $isdry && ! $istest; then
-		eval $1=false
+		haveapi=false
 		return
 	fi
 	json=$(curl -s https://api.github.com/repos/$org/$to)
 	error=$(echo $json | jshon -Q -e message -u)
-	if [[ "$error" = "API rate limit exceeded"* ]]; then	
-	# if [[ -n "$error" ]]; then	
-	# if true; then	
+	if [[ "$error" = "API rate limit exceeded"* ]]; then
+		# if [[ -n "$error" ]]; then
+		# if true; then
 		# echo error $error;
 		if [ -z "$user" ]; then
 			echo user unset API unavailable
 		else
-			# retry with credentials 
-			json=$(curl -s -u "$user:$pwd" https://api.github.com/repos/$org/$to)
+			# retry with credentials
+			# json=$(curl -s -u "$user:$pwd" https://api.github.com/repos/$org/$to)
+			json=$(gh api repos/$org/$to)
 			error=$(echo $json | jshon -Q -e message -u)
 			if [ -z "$error" ]; then
-				eval $1=true
+				haveapi=true
 				login="-u $user:$pwd"
 			else
 				# echo error $error
-			echo API unavailable
+				echo API unavailable
 			fi
 		fi
 	else
-		eval $1=true
+		haveapi=true
 	fi
 }
 
@@ -137,12 +195,12 @@ function is_big() {
 	json=$(curl -s $login https://api.github.com/repos/$org/$to)
 	size=$(echo $json|jshon -e size -u)
 	megs=$(numfmt --to=iec $(($size*1024)))
-if [ $size -gt 100000 ]; then
-	format false 9 $megs too big for --fast and --small
-	exit 1
-else
-	format false 2 $megs
-fi
+	if [ $size -gt 100000 ]; then
+		format false 9 $megs too big for --fast and --small
+		exit 1
+	else
+		format false 2 $megs
+	fi
 }
 
 # only git has shallow clones
@@ -151,29 +209,30 @@ function is_behind() {
 	echo comparing head dates
 	if  $isdry && ! $istest; then	return 0; fi
 
-	json=$(curl -s $login https://api.github.com/repos/$org/$to/branches/master)
+	# json=$(curl -s $login https://api.github.com/repos/$org/$to/branches/master)
+	json=$(gh api repos/$org/$to/branches/master)
 	md=$(echo $json|jq -r '.. | .date? | strings'|tail -1)
 
 	case "$type" in
-	git)
-		local c="clone --quiet --depth=1";;&
+		git)
+			local c="clone --quiet --depth=1";;&
 
-	hg)
-		local c=" hg clone";;&
+		hg)
+			local c=" hg clone";;&
 
 		cvs)
-		sd=$(date -u -Is -d "$(cvs -d $from history -a -T|tail -1|cut -f2-4 -d" ")" |sed s,+00:00,Z,)
-		# cvs -d $from log -N| grep ^date: | sort | tail -n 1 | cut -d\; -f1
-		;;
-	svn)
-		sd=$(date -u -Is -d "$(svn info $from| grep 'Date' |cut -d' ' -f4-6)"|sed s,+00:00,Z,)
-		;;
-	git|hg)
+			sd=$(date -u -Is -d "$(cvs -d $from history -a -T|tail -1|cut -f2-4 -d" ")" |sed s,+00:00,Z,)
+			# cvs -d $from log -N| grep ^date: | sort | tail -n 1 | cut -d\; -f1
+			;;
+		svn)
+			sd=$(date -u -Is -d "$(svn info $from| grep 'Date' |cut -d' ' -f4-6)"|sed s,+00:00,Z,)
+			;;
+		git|hg)
 
-	if $istest ; then
-		echo last commit $md
-		return 0
-	fi
+			if $istest ; then
+				echo last commit $md
+				return 0
+			fi
 
 	# shopt -u expand_aliases
 	rm -rf tmp
@@ -186,35 +245,35 @@ function is_behind() {
 	# shopt -s expand_aliases
 	;;
 
-	*)
-		format false 10 mirror date $md 
-		format false 9 add $type date comparison
-		return 0;;
-	esac
+*)
+	format false 10 mirror date $md
+	format false 9 add $type date comparison
+	return 0;;
+esac
 
-	if [ "$sd" == "$md" ]; then
-		format false 2 up to date $sd
-		exit 0
-	else
-		format false 9 updating from $md to $sd
-	fi
+if [ "$sd" == "$md" ]; then
+	format false 2 up to date $sd
+	exit 0
+else
+	format false 9 updating from $md to $sd
+fi
 }
 
 function remote_exist() {
 	case "$type" in
-	cvs)
-		cvs -d $from history>/dev/null
-;;&
-	svn)
-		svn info $from >/dev/null
-		;;&
-	cvs|svn)
-		if [ $? -ne 0 ]; then
-			exit 1
-		fi;;
-	*)
-		return 0
-esac
+		cvs)
+			cvs -d $from history>/dev/null
+			;;&
+		svn)
+			svn info $from >/dev/null
+			;;&
+		cvs|svn)
+			if [ $? -ne 0 ]; then
+				exit 1
+				fi;;
+			*)
+				return 0
+		esac
 }
 
 function mirror_exist() {
@@ -244,7 +303,7 @@ function create_repo() {
 		return 1
 	fi
 	if $isdry; then	return 0; fi
-	
+
 	# create repo
 	json=$(curl -s -u $user:$pwd -d "{\"name\":\"$to\"}" https://api.github.com/orgs/$org/repos)
 	error=$(echo "$json" | jshon -Q -e message -u)
@@ -257,22 +316,17 @@ function create_repo() {
 	json=$(curl -s -u $user:$pwd -X PATCH -d "{\"name\":\"$name\", \"description\":\"$description\"}" https://api.github.com/repos/$org/$name)
 }
 
-	# args
-	TO=(${1//\// });
-	to=${TO[0]}
-	branch=${TO[1]}
-	type=$2
-	from=$3
-arg=$4
-host=$(echo $from | awk -F[/:] '{print $4}')
-
-	# repo home
-	if [ -z "$REPO_HOME" ]; then
-		# echo "REPO_HOME not set using ."
-		REPO_HOME=.
+# repo home
+: ${REPO_HOME=~/repos}
+if ! $dryrun && [ ! -d "$REPO_HOME" ]; then
+	read -n1 -p "create repo home $REPO_HOME? [y/↵]/* " yn
+	if test $yn = y; then
+		mkdir $REPO_HOME
 	fi
-	if [ ! -d "$REPO_HOME" ]; then echo "$REPO_HOME doesn't exist"; return 1; fi
-	dir=$REPO_HOME/$to
+	# echo "repo home $REPO_HOME doesn't exist"
+	exit 1
+fi
+dir=$REPO_HOME/$to
 
 # target org
 if [ -z "$org" ]; then
@@ -290,9 +344,9 @@ fi
 		esac ;;&
 	bzr|git|hg) 
 		r='set-url --push';;&
-	cvs|svn) 
+	cvs|svn)
 		r='add';;&
-	bzr|hg) 
+	bzr|hg)
 		c="clone $q --mirror $type::$from ."
 		p="pull";;&
 	bzr)
@@ -327,12 +381,15 @@ fi
 		p="svn $qq rebase";;
 		# preserve history instead of update
 		# m="push $q origin master";;
-	*) echo "$type is unsupported"; exit 1;;
-	esac
-	
-	# skip type
+	*)
+		echo "$type is unsupported"
+		exit 1
+		;;
+esac
+
+# skip type
 if [ -n "$istype" -a "$istype" != "$type" ]; then
-	exit
+	exit 0
 fi
 
 # debug
@@ -340,37 +397,54 @@ if $isdebug; then
 	set -x
 fi
 
-	# title
-	echo
-	format true -1 $to $type
+# title
+# echo
+format true -1 $to $type
 
-	# branch push command
-	if [ -n "$branch" ]; then
-		dir=${dir}_$branch
-		m="push origin HEAD:$branch"
-	fi
+# branch push command
+if [ -n "$branch" ]; then
+	dir=${dir}_$branch
+	m="push origin HEAD:$branch"
+fi
 
 remote_exist
 
 if $isint; then
-read -s -n 1 -p "mirror [␣↵/*]" yn
-echo
-case $yn in
-"" ) ;;
-* ) exit;;
-esac
+	read -s -n 1 -p "mirror $name [␣↵ / * / q]" yn
+	echo
+	case $yn in
+		"" ) ;;
+		"q" ) exit 9;;
+		* )
+			echo skipping $name
+			exit 0
+			;;
+	esac
 fi
 
-# clone
-# why do we need this?
-# isrepo=($isgit && -f $dir/HEAD || !$isgit && -f $dir/.git/HEAD)
-if [[ -d $dir ]]; then
-	echo resume existing repo
-	pushd $dir
-	git $p
+resume_repo(){
+	echo clone existing mirror
+	git clone --mirror git@github.com:$org/$to .
 
-else
-echo no existing clone on disk
+	echo post processing
+	case "$type" in
+		bzr)
+			git branch master;;
+	esac
+	case "$name" in
+		jdownloader)
+			java -jar bfg.jar --strip-blobs-bigger-than 50M
+			if [ $? -ne 0 ]; then exit $?; fi
+			;;
+	esac
+
+	echo update remote
+	git remote $s origin $from
+	git remote $r origin git@github.com:$org/$to
+}
+
+new_repo(){
+	msg no existing clone on disk
 
 	if $isfast && [ -z "$istype" ] && ($issvn || $iscvs); then
 		echo --fast disable new $type clones
@@ -382,18 +456,18 @@ echo no existing clone on disk
 		exit 1
 	fi
 
-# api
-haveapi=false
-have_api haveapi
+	# api
+	haveapi=false
+	have_api
 
-# test
-if $istest; then
-	echo
-	# is_big
-	# is_behind
-	# mirror_exist
-	# exit
-fi
+	# test
+	if $istest; then
+		echo
+		# is_big
+		# is_behind
+		# mirror_exist
+		# exit
+	fi
 
 	is_big
 
@@ -412,50 +486,44 @@ fi
 	# this produce errors related to pull requests refs/pull/1/head
 	# if $isresume && $isgit; then
 	if false; then
-		echo clone existing mirror 
-		git clone --mirror git@github.com:$org/$to .
-
-		echo post processing
-		case "$type" in
-			bzr)
-			git branch master;;
-	esac
-		case "$to" in
-			jdownloader)
-			java -jar bfg.jar --strip-blobs-bigger-than 50M
-			if [ $? -ne 0 ]; then exit $?; fi;;
-	esac
-
-		echo update remote
-		git remote $s origin $from
-		git remote $r origin git@github.com:$org/$to
-
+		resume_repo
 	else
-		echo $(date -Im -u)Z cloning $from ...
+		msg $(date -Im -u)Z cloning $from ...
 		export GIT_SSL_NO_VERIFY=1
 		# git config --global http.sslVerify false
 		git $c
 		echo update remote address
 		git remote $r origin git@github.com:$org/$to
 	fi
+}
+
+# clone
+# if ($isgit && [ -f $dir/HEAD ] || ! $isgit && [ -f $dir/.git/HEAD ])
+# if (test -f $dir/HEAD || test -f $dir/.git/HEAD); then
+if [[ -d $dir ]]; then
+	echo resume existing repo
+	pushd $dir
+	git $p
+else
+	new_repo
 fi
 
-	# git-bzr
-	# if $isbzr; then
-		# git checkout bzr/master
-	# fi
+# git-bzr
+# if $isbzr; then
+# git checkout bzr/master
+# fi
 
-	# sync
-	echo updating $org/$to ...
-	git $m
+# sync
+msg updating $org/$to ...
+git $m
 res=$?
 
-	# return home
-	popd
+# return home
+popd
 
 if [ $res -eq 0 ]; then
 	format true 2 success
-	# keep big and slow repos 
+	# keep big and slow repos
 	if $isfast && $isgit; then
 		rm -rf $dir
 	fi
@@ -463,4 +531,4 @@ else
 	format true 9 fail
 fi
 
-if $isdebug; then set +x; fi
+# if $isdebug; then set +x; fi
