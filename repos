@@ -1,0 +1,86 @@
+# vim:ft=sh
+# Repo list
+
+# repos=(
+# test git git@abc --extra abc
+# test git git@abc abc
+repos="
+astyle svn https://svn.code.sf.net/p/astyle/code/trunk
+busybox git git://busybox.net/busybox.git
+chere git git://repo.or.cz/chere.git
+chromium git https://chromium.googlesource.com/chromium/src.git
+comical svn svn://svn.code.sf.net/p/comical/code/trunk
+console-devel hg http://hg.code.sf.net/p/console-devel/code
+cvs-fast-export git git://gitorious.org/cvs-fast-export/cvs-fast-export.git
+cvsps git git://gitorious.org/cvsps/cvsps.git
+daphne-emu svn https://www.daphne-emu.com:9443/daphnesvn/branches/v_1_0
+darwinbuild svn http://svn.macosforge.org/repository/darwinbuild/trunk
+desmume svn https://svn.code.sf.net/p/desmume/code/trunk
+dmidecode git http://git.savannah.gnu.org/r/dmidecode.git
+env-man git git://env-man.git.sourceforge.net/gitroot/env-man/env-man
+equalizerapo svn svn://svn.code.sf.net/p/equalizerapo/code/trunk
+firmware-mod-kit svn http://firmware-mod-kit.googlecode.com/svn/trunk
+freedownload svn svn://svn.code.sf.net/p/freedownload/code/trunc
+hydrairc svn http://svn.hydrairc.com/hydrairc/trunk
+jdownloader svn svn://svn.jdownloader.org/jdownloader/trunk
+launch4j git git://git.code.sf.net/p/launch4j/git
+levelzap git https://git01.codeplex.com/levelzap
+libdvdread git git://git.videolan.org/libdvdread.git
+libdvdnav git git://git.videolan.org/libdvdnav.git
+libosinfo git http://git.fedorahosted.org/git/libosinfo.git
+libX11 git git://anongit.freedesktop.org/xorg/lib/libX11
+libXi git git://anongit.freedesktop.org/xorg/lib/libXi
+listfix svn https://svn.code.sf.net/p/listfix/code/dev
+make git git://git.savannah.gnu.org/make
+mesa git https://gitlab.freedesktop.org/mesa/mesa
+mesa-demos git https://gitlab.freedesktop.org/mesa/demos
+mingw-org-wsl git git://git.code.sf.net/p/mingw/mingw-org-wsl
+mingw-w64 git git://git.code.sf.net/p/mingw-w64/mingw-w64
+model3emu svn https://svn.code.sf.net/p/model3emu/code/trunk
+moin-1.9 hg https://bitbucket.org/thomaswaldmann/moin-1.9
+moin-2.0 hg https://bitbucket.org/thomaswaldmann/moin-2.0
+ncurses git git://ncurses.scripts.mit.edu/ncurses.git
+newlib-cygwin git git://sourceware.org/git/newlib-cygwin.git
+nulldc svn http://nulldc.googlecode.com/svn/trunk
+odin svn https://svn.code.sf.net/p/odin-win/code/trunk
+patch git git://git.savannah.gnu.org/patch.git
+pcsx2 svn http://pcsx2.googlecode.com/svn/trunk
+pcsxr svn https://pcsxr.svn.codeplex.com/svn/pcsxr
+pinmame svn svn://svn.code.sf.net/p/pinmame/code/trunk
+plainamp svn svn://svn.code.sf.net/p/plainamp/code/trunk
+plibc svn https://svn.code.sf.net/p/plibc/code/trunk/plibc
+processhacker svn svn://svn.code.sf.net/p/processhacker/code
+qemu-android git https://android.googlesource.com/platform/external/qemu
+r svn https://svn.r-project.org/R/trunk
+rarfilesource git http://www.v12pwr.com/RARFileSource.git
+reactos svn svn://svn.reactos.org/reactos/trunk
+rtmpdump git git://git.ffmpeg.org/rtmpdump.git
+scintilla hg http://hg.code.sf.net/p/scintilla/code
+scite hg http://hg.code.sf.net/p/scintilla/scite
+sed git git://git.savannah.gnu.org/sed.git
+smartmontools svn https://svn.code.sf.net/p/smartmontools/code/trunk/smartmontools
+soundtouch svn https://svn.code.sf.net/p/soundtouch/code/trunk
+tclap git git://git.code.sf.net/p/tclap/code
+tinycc git git://repo.or.cz/tinycc.git
+vbam svn https://svn.code.sf.net/p/vbam/code
+vbox svn https://www.virtualbox.org/svn/vbox/trunk
+virtualjaguar git http://shamusworld.gotdns.org/git/virtualjaguar
+VMsvga2 svn svn://svn.code.sf.net/p/vmsvga2/code/VMsvga2/trunk
+waver bzr lp:waver
+wget git git://git.sv.gnu.org/wget.git
+winscp cvs :pserver:anonymous@winscp.cvs.sourceforge.net:/cvsroot/winscp winscp3
+x264 git http://git.videolan.org/git/x264.git
+xmlrpc-c svn http://svn.code.sf.net/p/xmlrpc-c/code '--ignore-paths=^(release_number|super_stable|userguide)'
+xmlstar git git://git.code.sf.net/p/xmlstar/code
+xserver git git://anongit.freedesktop.org/xorg/xserver
+"
+# )
+
+# The following projects are dead:
+# vba-rerecording svn http://vba-rerecording.googlecode.com/svn/trunk
+
+# already at https://github.com/DD-WRT-CN/ddwrt
+# dd-wrt svn svn://svn.dd-wrt.com/DD-WRT
+# https://github.com/Wiimm/wiimms-iso-tools
+# wiimms-iso-tools svn http://opensvn.wiimm.de/wii/branches/public/wiimms-iso-tools
+
