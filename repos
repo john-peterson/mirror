@@ -1,10 +1,8 @@
 # vim:ft=sh
 # Repo list
 
-# repos=(
 # test git git@abc --extra abc
 # test git git@abc abc
-repos="
 astyle svn https://svn.code.sf.net/p/astyle/code/trunk
 busybox git git://busybox.net/busybox.git
 chere git git://repo.or.cz/chere.git
@@ -73,14 +71,13 @@ x264 git http://git.videolan.org/git/x264.git
 xmlrpc-c svn http://svn.code.sf.net/p/xmlrpc-c/code '--ignore-paths=^(release_number|super_stable|userguide)'
 xmlstar git git://git.code.sf.net/p/xmlstar/code
 xserver git git://anongit.freedesktop.org/xorg/xserver
-"
-# )
 
-# The following projects are dead:
+# offline / defunct / gone
 # vba-rerecording svn http://vba-rerecording.googlecode.com/svn/trunk
 
-# already at https://github.com/DD-WRT-CN/ddwrt
+# moved to GitHub 
 # dd-wrt svn svn://svn.dd-wrt.com/DD-WRT
-# https://github.com/Wiimm/wiimms-iso-tools
+# https://github.com/DD-WRT-CN/ddwrt
 # wiimms-iso-tools svn http://opensvn.wiimm.de/wii/branches/public/wiimms-iso-tools
+# https://github.com/Wiimm/wiimms-iso-tools
 

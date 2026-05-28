@@ -7,8 +7,8 @@ of the mirror org and its repositories.
 test run
 
 ~~~
-git_mirror -n abc git git@123
-bash mirror.sh -n -tgit
+git-mirror -n abc git git@123
+mirror -n -tgit -i
 ~~~
 
 to mirror a svn source forge repo to abc/123
@@ -17,7 +17,7 @@ to mirror a svn source forge repo to abc/123
 export org=abc
 export REPO_HOME=~/repos
 mkdir -p $REPO_HOME
-git_mirror 123 svn https://svn.code.sf.net/p/123/code/trunk --dry-run
+git-mirror 123 svn https://svn.code.sf.net/p/123/code/trunk --dry-run
 ~~~
 
 to update all small bzr mirrors hosted here 
