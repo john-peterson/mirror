@@ -1,0 +1,74 @@
+#!/bin/env bash
+# Repo list dispatch 
+# set -x
+set -e
+
+git-mirror >& /dev/null
+if test $? -ne 0; then
+	PATH+=:.
+fi
+git-mirror >& /dev/null
+if test $? -ne 0; then
+	echo git-mirror not found in path
+	exit 1
+fi
+
+# exit
+
+for arg in "$@"; do
+	# echo -- $arg
+	case "$arg" in
+		-t*)
+			istype=$(echo $arg|cut -c 3-)
+			if ! [[ $istype =~ bzr|cvs|git|hg|svn ]]; then
+				echo invalid type $istype
+				exit 1
+			fi
+			;;
+	esac
+done
+
+args=$@
+# set -x
+
+# function git-mirror() {
+# if [ $# -lt 4 ]; then
+# 	git-mirror $@ "" $args
+# else
+# 	git-mirror $@ $args
+# fi
+# }
+
+i=0
+while IFS= read -r r <&3; do
+	test -z "$r" && continue
+	test "${r:0:1}" = "#" && continue
+	# echo $r
+
+	# echo ${#r[@]}
+	# type=${r[1]}
+	name=$(echo $r| cut -d" " -f1)
+	type=$(echo $r| cut -d" " -f2)
+
+	# echo type $type
+	if [ -n "$istype" -a "$istype" != "$type" ]; then
+		:
+		# echo skipping $name
+		# echo skipping $name $type!=$istype
+		continue
+	fi
+
+	# echo dispatch $r $args
+	# printargs $r $args
+	# printargs ${r[@]} $args
+
+	# git-mirror ${r[@]} $args
+	git-mirror $r $args
+	if test $? -eq 9; then
+		exit
+	fi
+
+	# test $i -gt 1 && exit
+	: $((i++))
+done 3< repos
+
