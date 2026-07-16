@@ -16,6 +16,7 @@
 function show_usage() {
 	echo mirror repo to git hub
 	echo 'example usage: git_mirror.sh abc bzr http://launchpad/abc "" --debug --dry-run
+	--all|-a do not use API update all repos
 	--fast skip svn cvs
 	--interactive|-i require user input
 	--quiet no progress info
@@ -56,6 +57,8 @@ for arg in "$@"; do
 	case "$arg" in
 		-\?|-h|--help|--usage)
 			show_usage;;
+		-a|--all)
+			haveapi=false;;
 		-d|--debug)
 			isdebug=true;;
 		-n|--dry-run)
@@ -463,8 +466,7 @@ new_repo(){
 	fi
 
 	# api
-	haveapi=false
-	haveapi=true
+	: ${haveapi=true}
 	# this test will drain request quota
 	# have_api
 
